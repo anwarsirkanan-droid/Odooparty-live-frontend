@@ -22,6 +22,7 @@ import { TaskCenterModal } from './pages/TaskCenterModal';
 import { VerificationModal } from './pages/VerificationModal';
 import { InvitationModal } from './pages/InvitationModal';
 import { SettingsModal } from './pages/SettingsModal';
+import { DailyCheckInModal } from './components/DailyCheckInModal';
 import { VoiceRoom } from './types';
 
 function MainApp() {
@@ -34,6 +35,7 @@ function MainApp() {
 
   // Modals
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isDailyCheckInOpen, setIsDailyCheckInOpen] = useState(false);
   const [isWalletOpen, setIsWalletOpen] = useState(false);
   const [walletDefaultTab, setWalletDefaultTab] = useState<'balance' | 'recharge' | 'withdraw'>('balance');
   const [isHostCenterOpen, setIsHostCenterOpen] = useState(false);
@@ -45,6 +47,37 @@ function MainApp() {
   const [isVerificationOpen, setIsVerificationOpen] = useState(false);
   const [isInvitationOpen, setIsInvitationOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  // Auto-display Daily Check-in modal on first app open if unclaimed
+  React.useEffect(() => {
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const sessionDismissed = sessionStorage.getItem(`odoo_checkin_dismissed_${today}`);
+      const saved = localStorage.getItem('odoo_daily_checkin');
+      let alreadyClaimed = false;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.lastCheckInDate === today) {
+          alreadyClaimed = true;
+        }
+      }
+
+      if (!alreadyClaimed && !sessionDismissed) {
+        const timer = setTimeout(() => {
+          setIsDailyCheckInOpen(true);
+        }, 800);
+        return () => clearTimeout(timer);
+      }
+    } catch {}
+  }, []);
+
+  const handleCloseDailyCheckIn = () => {
+    setIsDailyCheckInOpen(false);
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      sessionStorage.setItem(`odoo_checkin_dismissed_${today}`, 'true');
+    } catch {}
+  };
 
   // Quick navigation helpers
   const handleOpenRecharge = () => {
@@ -89,6 +122,7 @@ function MainApp() {
             onJoinRoom={handleJoinRoom}
             onOpenHostCenter={() => setIsHostCenterOpen(true)}
             onOpenTasks={() => setIsTasksOpen(true)}
+            onOpenDailyCheckIn={() => setIsDailyCheckInOpen(true)}
             onOpenLevels={() => {
               setLevelsDefaultTab('wealth');
               setIsLevelsOpen(true);
@@ -143,6 +177,11 @@ function MainApp() {
 
       {/* Modals & Secondary Pages */}
       <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
+
+      <DailyCheckInModal
+        isOpen={isDailyCheckInOpen}
+        onClose={handleCloseDailyCheckIn}
+      />
 
       <WalletModal
         isOpen={isWalletOpen}

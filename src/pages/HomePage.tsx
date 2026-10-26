@@ -9,18 +9,24 @@ import {
   Search,
   RefreshCw,
   Trash2,
+  Gift,
+  Flame,
+  ChevronRight,
+  Sparkles,
 } from 'lucide-react';
 
 interface HomePageProps {
   onJoinRoom: (room: VoiceRoom) => void;
   onOpenHostCenter?: () => void;
   onOpenTasks?: () => void;
+  onOpenDailyCheckIn?: () => void;
   onOpenLevels?: () => void;
   onOpenWallet?: () => void;
 }
 
 export const HomePage: React.FC<HomePageProps> = ({
   onJoinRoom,
+  onOpenDailyCheckIn,
 }) => {
   const { user } = useAuth();
   const [rooms, setRooms] = useState<VoiceRoom[]>([]);
@@ -157,6 +163,40 @@ export const HomePage: React.FC<HomePageProps> = ({
           <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
         </button>
       </div>
+
+      {/* Daily Check-in Quick Card */}
+      {onOpenDailyCheckIn && (
+        <div
+          onClick={onOpenDailyCheckIn}
+          className="cursor-pointer p-3 rounded-2xl bg-gradient-to-r from-amber-500/15 via-purple-900/25 to-pink-900/15 border border-amber-500/30 hover:border-amber-400/50 shadow-md transition-all active:scale-[0.99] flex items-center justify-between group"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="relative">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-yellow-400 text-slate-950 flex items-center justify-center shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform">
+                <Gift className="w-5 h-5" />
+              </div>
+              <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-red-500 border-2 border-slate-900 animate-pulse" />
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-black text-white">Daily Check-in</span>
+                <span className="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 text-[9px] font-extrabold border border-amber-500/30 flex items-center gap-0.5">
+                  <Flame className="w-2.5 h-2.5 text-orange-400" />
+                  Free Coins & EXP
+                </span>
+              </div>
+              <span className="text-[11px] text-slate-300 block">
+                Claim your daily reward & build a 7-day streak!
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1 text-xs font-bold text-amber-300 group-hover:translate-x-0.5 transition-transform">
+            <span>Claim</span>
+            <ChevronRight className="w-4 h-4 text-amber-400" />
+          </div>
+        </div>
+      )}
 
       {/* Tag filter pills */}
       <div className="flex gap-1.5 overflow-x-auto pb-1 text-xs">

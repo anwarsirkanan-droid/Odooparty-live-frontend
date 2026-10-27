@@ -23,6 +23,7 @@ import { VerificationModal } from './pages/VerificationModal';
 import { InvitationModal } from './pages/InvitationModal';
 import { SettingsModal } from './pages/SettingsModal';
 import { DailyCheckInModal } from './components/DailyCheckInModal';
+import { ProfileSetupModal, isProfileSetupComplete } from './components/ProfileSetupModal';
 import { VoiceRoom } from './types';
 
 function MainApp() {
@@ -36,6 +37,8 @@ function MainApp() {
   // Modals
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isDailyCheckInOpen, setIsDailyCheckInOpen] = useState(false);
+  const checkinScheduledRef = React.useRef(false);
+  const [isProfileSetupOpen, setIsProfileSetupOpen] = useState(false);
   const [isWalletOpen, setIsWalletOpen] = useState(false);
   const [walletDefaultTab, setWalletDefaultTab] = useState<'balance' | 'recharge' | 'withdraw'>('balance');
   const [isHostCenterOpen, setIsHostCenterOpen] = useState(false);
@@ -50,7 +53,13 @@ function MainApp() {
 
   // Auto-display Daily Check-in modal on first app open if unclaimed
   React.useEffect(() => {
+    if (!user) {
+      checkinScheduledRef.current = false;
+      return;
+    }
+    if (checkinScheduledRef.current) return;
     try {
+      if (!isProfileSetupComplete(user)) return;
       const today = new Date().toISOString().slice(0, 10);
       const sessionDismissed = sessionStorage.getItem(`odoo_checkin_dismissed_${today}`);
       const saved = localStorage.getItem('odoo_daily_checkin');
@@ -63,13 +72,23 @@ function MainApp() {
       }
 
       if (!alreadyClaimed && !sessionDismissed) {
+        checkinScheduledRef.current = true;
         const timer = setTimeout(() => {
           setIsDailyCheckInOpen(true);
         }, 800);
         return () => clearTimeout(timer);
       }
     } catch {}
-  }, []);
+  }, [user]);
+
+  React.useEffect(() => {
+    if (!user) return;
+    try {
+      if (isProfileSetupComplete(user)) return;
+      const t = setTimeout(() => setIsProfileSetupOpen(true), 600);
+      return () => clearTimeout(t);
+    } catch {}
+  }, [user]);
 
   const handleCloseDailyCheckIn = () => {
     setIsDailyCheckInOpen(false);
@@ -181,6 +200,10 @@ function MainApp() {
       <DailyCheckInModal
         isOpen={isDailyCheckInOpen}
         onClose={handleCloseDailyCheckIn}
+      />
+      <ProfileSetupModal
+        isOpen={isProfileSetupOpen}
+        onClose={() => setIsProfileSetupOpen(false)}
       />
 
       <WalletModal

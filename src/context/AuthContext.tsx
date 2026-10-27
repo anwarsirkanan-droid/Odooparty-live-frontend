@@ -12,6 +12,7 @@ interface AuthContextType {
   googleLogin: (credential: string) => Promise<any>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  updateProfile: (payload: { username?: string; avatar?: string; name?: string; bio?: string }) => Promise<void>;
   adjustCoins: (amount: number) => void;
   adjustDiamonds: (amount: number) => void;
   adjustPoints: (amount: number) => void;
@@ -88,6 +89,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(false);
     }
   }, []);
+
+  const updateProfile = useCallback(async (payload: { username?: string; avatar?: string; name?: string; bio?: string }) => {
+    const res = await api.profile.updateProfile(payload);
+    if (res && res.user) {
+      setUser(res.user);
+      try { localStorage.setItem('meso_user_profile', JSON.stringify(res.user)); } catch {}
+    } else {
+      await refreshUser();
+    }
+  }, [refreshUser]);
 
   useEffect(() => {
     refreshUser();
@@ -216,6 +227,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         googleLogin,
         logout,
         refreshUser,
+        updateProfile,
         adjustCoins,
         adjustDiamonds,
         adjustPoints,

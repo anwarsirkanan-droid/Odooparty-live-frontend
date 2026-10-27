@@ -90,6 +90,10 @@ export const api = {
       const response = await apiClient.get<any>('/users/profile');
       return response.data;
     },
+    async updateProfile(payload: { username?: string; avatar?: string; name?: string; bio?: string }) {
+      const response = await apiClient.put<any>('/users/profile', payload);
+      return response.data;
+    },
   },
 
   // 3. Rooms
